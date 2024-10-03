@@ -4,9 +4,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import io from 'socket.io-client';
 import { AuthContext } from '../layout';
-import './style.css'
-
-const socket = io('http://localhost:4000');
+import './style.css';
 
 export default function JoinRoomPage() {
   const { setRoomAccess } = useContext(AuthContext);
@@ -23,15 +21,35 @@ export default function JoinRoomPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [isPinValid, setIsPinValid] = useState(false);
+  const [socket, setSocket] = useState(null);  // Store socket instance in state
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const socketConnection = io('http://localhost:4000'); // Initialize socket.io only on the client-side
+      setSocket(socketConnection);
+      
+      return () => {
+        if (socketConnection) {
+          socketConnection.disconnect();
+        }
+      };
+    }
+  }, []);  // Initialize socket.io once on mount
+
+  useEffect(() => {
     async function fetchRooms() {
-      const res = await fetch('http://localhost:8080/joinRoom.php');
-      const data = await res.json();
-      setRooms(data.rooms);
-      setPrivateRooms(data.rooms.filter(room => room.isPublic == 0));
-      setPublicRooms(data.rooms.filter(room => room.isPublic == 1));
+      if (typeof window !== 'undefined') {
+        try {
+          const res = await fetch('http://localhost:8080/joinRoom.php');
+          const data = await res.json();
+          setRooms(data.rooms);
+          setPrivateRooms(data.rooms.filter(room => room.isPublic == 0));
+          setPublicRooms(data.rooms.filter(room => room.isPublic == 1));
+        } catch (error) {
+          console.error('Error fetching rooms:', error);
+        }
+      }
     }
     fetchRooms();
   }, []);
@@ -42,7 +60,7 @@ export default function JoinRoomPage() {
       return;
     }
 
-    if (!isPrivate) {
+    if (!isPrivate && socket) {
       const roomData = { roomId: selectedRoom, password };
       socket.emit('joinRoom', roomData);
       socket.on('joinedRoom', (roomId) => {
@@ -55,35 +73,39 @@ export default function JoinRoomPage() {
     if (!selectedRoom) {
       setErrorMessage('Please select a room to join');
       return; 
-  }
+    }
 
     if (isPrivate && !password) {
       setErrorMessage('Password is required to enter the room!');
       return;
     }
 
-    const res = await fetch('http://localhost:8080/joinRoom.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ roomId: selectedRoom, password }),
-    });
+    try {
+      const res = await fetch('http://localhost:8080/joinRoom.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ roomId: selectedRoom, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (isPrivate) {
-      const selectedPrivateRoom = privateRooms.find(room => room.id === selectedRoom);
-      if (selectedPrivateRoom && data.status !== 'success') {
-        setErrorMessage('Password is not correct');
-        return;
-      } else {
-        setRoomAccess((prevAccess) => ({ ...prevAccess, [selectedRoom]: true }));
-        router.push(`/room/${data.roomId}`);
+      if (isPrivate) {
+        const selectedPrivateRoom = privateRooms.find(room => room.id === selectedRoom);
+        if (selectedPrivateRoom && data.status !== 'success') {
+          setErrorMessage('Password is not correct');
+          return;
+        } else {
+          setRoomAccess((prevAccess) => ({ ...prevAccess, [selectedRoom]: true }));
+          router.push(`/room/${data.roomId}`);
+        }
       }
+      setErrorMessage('');
+      joinRoom();
+    } catch (error) {
+      console.error('Error joining room:', error);
     }
-    setErrorMessage('');
-    joinRoom();
   };
 
   const handleForgotPasswordClick = () => {
@@ -127,19 +149,21 @@ export default function JoinRoomPage() {
     }
 
     const roomData = { roomId: selectedRoom, newPassword };
-    socket.emit('changePassword', roomData);
+    if (socket) {
+      socket.emit('changePassword', roomData);
 
-    socket.on('passwordChanged', (response) => {
-      if (response.status === 'success') {
-        setPassword(newPassword);
-        setNewPassword('');
-        setConfirmPassword('');
-        setIsForgotPassword(false);
-        setErrorMessage('Password has been changed successfully!');
-      } else {
-        setErrorMessage('Failed to change the password.');
-      }
-    });
+      socket.on('passwordChanged', (response) => {
+        if (response.status === 'success') {
+          setPassword(newPassword);
+          setNewPassword('');
+          setConfirmPassword('');
+          setIsForgotPassword(false);
+          setErrorMessage('Password has been changed successfully!');
+        } else {
+          setErrorMessage('Failed to change the password.');
+        }
+      });
+    }
   };
 
   const isPrivateRoomSelected = () => {

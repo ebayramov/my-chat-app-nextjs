@@ -8,29 +8,32 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 export const AuthContext = createContext();
 
 export default function RootLayout({ children }) {
-  const [logged, setLogged] = useState(() => {
-    const savedLogged = localStorage.getItem('logged');
-    return savedLogged === 'true' ? true : false;
-  });
-
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem('username') || '';
-  });
-
-  const [notificationCount, setNotificationCount] = useState(() => {
-    return localStorage.getItem('notificationCount') || 0;
-  });
-
-  const [roomAccess, setRoomAccess] = useState(() => {
-    const savedAccess = localStorage.getItem('roomAccess');
-    return savedAccess ? JSON.parse(savedAccess) : {};
-  });
+  const [logged, setLogged] = useState(false);
+  const [username, setUsername] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [roomAccess, setRoomAccess] = useState({});
 
   useEffect(() => {
-    localStorage.setItem('logged', logged);
-    localStorage.setItem('username', username);
-    localStorage.setItem('notificationCount', notificationCount);
-    localStorage.setItem('roomAccess', JSON.stringify(roomAccess));
+    if (typeof window !== 'undefined') {
+      const savedLogged = localStorage.getItem('logged');
+      const savedUsername = localStorage.getItem('username');
+      const savedNotificationCount = localStorage.getItem('notificationCount');
+      const savedRoomAccess = localStorage.getItem('roomAccess');
+
+      setLogged(savedLogged === 'true');
+      setUsername(savedUsername || '');
+      setNotificationCount(savedNotificationCount || 0);
+      setRoomAccess(savedRoomAccess ? JSON.parse(savedRoomAccess) : {});
+    }
+  }, []); // Runs only once when the component is mounted
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('logged', logged);
+      localStorage.setItem('username', username);
+      localStorage.setItem('notificationCount', notificationCount);
+      localStorage.setItem('roomAccess', JSON.stringify(roomAccess));
+    }
   }, [logged, username, notificationCount, roomAccess]);
 
   return (
@@ -41,9 +44,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
-           </head>
+      </head>
       <body>
-        <AuthContext.Provider value={{ logged, setLogged, username, setUsername, notificationCount, setNotificationCount, roomAccess, setRoomAccess }}>
+        <AuthContext.Provider 
+          value={{ logged, setLogged, username, setUsername, notificationCount, setNotificationCount, roomAccess, setRoomAccess }}>
           {children}
         </AuthContext.Provider>
       </body>

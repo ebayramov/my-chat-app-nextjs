@@ -4,7 +4,7 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AuthContext } from '../../layout';
 import io from 'socket.io-client';
-import './style.css'
+import './style.css';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import calendar from 'dayjs/plugin/calendar';
@@ -12,7 +12,6 @@ import calendar from 'dayjs/plugin/calendar';
 dayjs.extend(relativeTime);
 dayjs.extend(calendar);
 
-const socket = io('http://localhost:4000');
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 export default function RoomPage() {
@@ -34,6 +33,22 @@ export default function RoomPage() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState(null);
     const messagesEndRef = useRef(null);
+    const [socket, setSocket] = useState(null); // Store socket instance in state
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const socketConnection = io('http://localhost:4000'); // Initialize socket on client side only
+            setSocket(socketConnection);
+            
+            socketConnection.on('message', (msg) => {
+                setMessages((prevMessages) => [...prevMessages, msg]);
+            });
+
+            return () => {
+                socketConnection.disconnect();
+            };
+        }
+    }, []);
 
     useEffect(() => {
         async function fetchRoomName() {
@@ -50,7 +65,7 @@ export default function RoomPage() {
                         router.push('/joinRoom');
                     } else {
                         setLoading(false);
-                        socket.emit('joinRoom', { roomId });
+                        socket?.emit('joinRoom', { roomId });
                     }
                 }
             } catch (error) {
@@ -59,22 +74,22 @@ export default function RoomPage() {
         }
 
         async function fetchMessages() {
-            const res = await fetch(`http://localhost:8080/messages.php?room_id=${roomId}`);
-            const data = await res.json();
-            setMessages(data.messages);
+            try {
+                const res = await fetch(`http://localhost:8080/messages.php?room_id=${roomId}`);
+                const data = await res.json();
+                setMessages(data.messages);
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
         }
 
         fetchRoomName();
         fetchMessages();
 
-        socket.on('message', (msg) => {
-            setMessages((prevMessages) => [...prevMessages, msg]);
-        });
-
         return () => {
-            socket.off('message');
+            socket?.off('message');
         };
-    }, [roomId, roomAccess, router]);
+    }, [roomId, roomAccess, router, socket]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -93,14 +108,16 @@ export default function RoomPage() {
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
+        if (typeof window !== 'undefined') {
+            window.addEventListener('keydown', handleKeyDown);
+        }
 
         return () => {
-            window.removeEventListener('keydown', handleKeyDown);
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('keydown', handleKeyDown);
+            }
         };
     }, [selectedUser, message]);
-
-
 
     useEffect(() => {
         setIsSendButtonEnabled(message.trim() !== '' || image !== null);
@@ -144,65 +161,15 @@ export default function RoomPage() {
         setMessage('');
     };
 
-    const handleSearch = async (e) => {
-        const value = e.target.value;
-        setSearchQuery(value); // Update the input value
-
-        if (value) {
-            try {
-                const res = await fetch(`http://localhost:8080/searchUsers.php?query=${value}`);
-                const data = await res.json();
-                setUserResults(data.users);
-            } catch (error) {
-                console.error('Error searching users:', error);
-            }
-        } else {
-            setUserResults([]);
-        }
-
-        setSelectedUser('');
-        setIsSendButtonEnabled(false);
-    };
-
-
-    const handleUserSelection = (username) => {
-        setSelectedUser(username);
-        setSearchQuery(username);
-        setUserResults([]);
-        setIsSendButtonEnabled(true);
-    };
-
-
-    useEffect(() => {
-        if (selectedUser && searchQuery !== selectedUser) {
-            setIsSendButtonEnabled(false);
-        }
-    }, [searchQuery, selectedUser]);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const inviteInput = document.getElementById('inviteInput');
-            const userList = document.getElementById('userList');
-            if (inviteInput && !inviteInput.contains(event.target) && userList && !userList.contains(event.target)) {
-                setUserResults([]);
-            }
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
-    }, []);
-
-
     const handleInvite = async () => {
         if (selectedUser) {
             const invitationData = { roomId, roomName: selectedRoom, invitedBy: username };
             if (isPublic === 0) {
                 invitationData.password = roomPassword; // Encrypt this on server-side before sending
             }
-            socket.emit('sendInvitation', { ...invitationData, invitedUser: selectedUser });
+            socket?.emit('sendInvitation', { ...invitationData, invitedUser: selectedUser });
 
-            socket.on('invitationStatus', ({ status, message }) => {
+            socket?.on('invitationStatus', ({ status, message }) => {
                 if (status === 'success') {
                     alert(message);  // Display success message
                 } else {
@@ -216,37 +183,6 @@ export default function RoomPage() {
         }
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                alert('Only image files are allowed.');
-                return;
-            }
-            if (file.size > MAX_IMAGE_SIZE) {
-                alert('The image size cannot exceed 2MB.');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
-
-            setImage(file);
-        }
-    };
-
-    const handleExitRoom = () => {
-        setRoomAccess((prevAccess) => {
-            const newAccess = { ...prevAccess };
-            delete newAccess[roomId];
-            return newAccess;
-        });
-        router.push('/');
-    };
-
     const groupMessagesByDate = (messages) => {
         const groupedMessages = {};
         messages.forEach((msg) => {
@@ -257,33 +193,6 @@ export default function RoomPage() {
             groupedMessages[date].push(msg);
         });
         return groupedMessages;
-    };
-
-    const handleDeleteClick = (msg) => {
-        setMessageToDelete(msg);
-        setShowDeleteModal(true);
-    };
-
-    const confirmDelete = async () => {
-        try {
-            const res = await fetch(`http://localhost:8080/deleteMessage.php`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id: messageToDelete.id })
-            });
-            const data = await res.json();
-            if (data.status === 'success') {
-                setMessages(messages.filter((m) => m.id !== messageToDelete.id));
-                setShowDeleteModal(false);
-                setMessageToDelete(null);
-            } else {
-                console.error('Failed to delete message:', data.message);
-            }
-        } catch (error) {
-            console.error('Error deleting message:', error);
-        }
     };
 
     const renderMessageGroups = () => {
@@ -303,13 +212,12 @@ export default function RoomPage() {
                     <div className="dateLabel">{dateLabel}</div>
                     {groupedMessages[date].map((msg, idx) => (
                         <div key={idx} className={`message ${msg.user === username ? 'sent' : 'received'}`}>
-                            <p className='messageText'><strong>{msg.user}</strong>  <span dangerouslySetInnerHTML={{ __html: msg.message.replaceAll('\n', '<br>') }} /> </p>
+                            <p className='messageText'>
+                                <strong>{msg.user}</strong>
+                                <span dangerouslySetInnerHTML={{ __html: msg.message.replaceAll('\n', '<br>') }} />
+                            </p>
                             {msg.image_url && <img src={msg.image_url} alt="sent image" className="image" />}
-                            {msg.user === username && (
-                                <span className="deleteIcon" onClick={() => handleDeleteClick(msg)}><i className="fas fa-trash-alt"></i></span>
-                            )}
                             <span className="timeLabel">{dayjs(msg.created_at).format('HH:mm')}</span>
-
                         </div>
                     ))}
                 </div>
@@ -372,7 +280,7 @@ export default function RoomPage() {
                         placeholder="Search users..."
                     />
                     {userResults.length > 0 && (
-                        <ul id="userList"> 
+                        <ul id="userList">
                             {userResults.map((user) => (
                                 <li
                                     key={user.username}
@@ -403,7 +311,4 @@ export default function RoomPage() {
             )}
         </div>
     );
-
 }
-
-
