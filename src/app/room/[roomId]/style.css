@@ -1,0 +1,329 @@
+/* new style */
+
+@media (max-width: 768px) {
+    #mainContainer {
+        flex-direction: column;
+        /* Stack the containers on top of each other */
+        height: auto;
+        /* Adjust height for stacking */
+    }
+
+    .inviteButton,
+    .exitButton {
+        margin: 5px;
+    }
+
+    #leftContainer,
+    .rightContainer {
+        width: 100% !important;
+        /* Make both containers take up full width */
+    }
+
+    #leftContainer {
+        max-height: 70vh !important;
+    }
+
+    #leftContainer {
+        border-right: none;
+        /* Remove the border when stacked */
+    }
+}
+
+/* General Styling */
+#mainContainer {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    max-width: 100%;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f0f0;
+    border: 1px solid #e6e6e6;
+}
+
+/* Left Side (Messages) */
+#leftContainer {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    background-color: #e5ddd5;
+    border-right: 1px solid #e6e6e6;
+}
+
+/* Right Side (Invite Users, Exit Room) */
+.rightContainer {
+    width: 30%;
+    padding: 20px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Header */
+#room-header {
+    background-color: #075E54;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+    margin: 0;
+}
+
+.messages {
+    padding: 10px;
+    background-color: #e5ddd5;
+    overflow-y: auto;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.messageGroup {
+    margin-bottom: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dateLabel {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: #dcf8c6;
+}
+
+.message.sent .messageText {
+    margin-right: 20px;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+}
+
+.message strong {
+    color: #333;
+    margin-right: 10px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    padding: 8px 10px;
+    position: relative;
+    word-wrap: break-word;
+    font-size: 14px;
+}
+
+.messageText {
+    margin: 0;
+}
+
+.timeLabel {
+    font-size: 11px;
+    color: #999;
+    text-align: right;
+}
+
+.deleteIcon {
+    font-size: 12px;
+    cursor: pointer;
+    color: #999;
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    transition: color 0.2s ease-in-out;
+}
+
+.deleteIcon:hover {
+    /* color: #ff6f61; */
+    color: #dc3545;
+}
+
+.image {
+    max-width: 250px;
+    margin-top: 5px;
+    margin-right: 10px;
+    border-radius: 8px;
+}
+
+.attachmentButton {
+    background-color: #f0f0f0;
+    color: #007bff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.attachmentButton:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+#inputContain {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px;
+    border-top: 1px solid #e6e6e6;
+}
+
+#messagingInput {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
+    flex: 1;
+    margin-right: 10px;
+    border: none;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    height: auto;
+}
+
+#send-message {
+    width: fit-content;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#send-message:hover {
+    background-color: #339eff;
+}
+
+#send-message:disabled {
+    background-color: #b0c4de;
+    cursor: not-allowed;
+}
+
+
+
+.imagePreview {
+    margin-bottom: 10px;
+    margin-right: 10px;
+    max-width: 100%;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.previewImage {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+/* Right Side Styling */
+.searchInput {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+#userList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.userListItem {
+    padding: 10px;
+    background-color: #fff;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.userListItem:hover {
+    background-color: #f0f0f0;
+}
+
+
+.inviteButton:disabled {
+    background-color: #a5c9b8;
+    cursor: not-allowed;
+}
+
+.inviteButton,
+.exitButton {
+    padding: 10px;
+    background-color: #075E54;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    /* Make buttons same width */
+    text-align: center;
+}
+
+.exitButton {
+    background-color: #ff4d4d;
+}
+
+/* Modal */
+#modal-deletion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#modalContent {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+#confirmButton,
+#cancelButton {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    max-width: fit-content;
+}
+
+#confirmButton {
+    background-color: #ff4d4d;
+    color: white;
+    }
+
+#cancelButton {
+    background-color: #075E54;
+    color: white;
+}

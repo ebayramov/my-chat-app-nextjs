@@ -1,0 +1,62 @@
+/* Styling for Home Page */
+#container {
+  max-width: 700px;
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: fit-content;
+}
+
+#container2 {
+  max-width: 700px;
+  margin: auto;
+}
+
+#navbar {
+  border-radius: 0;   
+}
+
+#title {
+  color: #007bff;
+}
+
+#card {
+  border-radius: 10px;
+}
+
+#btn-danger {
+  background-color: #ff5252;
+}
+
+#btn-danger2 {
+  width: fit-content;
+  padding: 6px 12px;
+  background-color: #ff5252;
+}
+
+#btn-primary {
+  background-color: #007bff;
+}
+
+#btn-success {
+  background-color: #28a745;
+}
+
+#btn-danger:hover {
+  background-color: #ff4c4c;
+}
+
+#btn-primary:hover {
+  background-color: #0056b3;
+}
+
+#notification-toggle::after {
+  display: none !important;
+}
+
+#notification-dropdown-menu {
+  min-width: 300px;
+  max-width: 350px;
+  padding: 10px;
+}

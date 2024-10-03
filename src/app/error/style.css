@@ -1,0 +1,47 @@
+/* Error Page Container */
+#error-page-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: 'Roboto', sans-serif;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #e6e6e6;
+}
+
+/* Error Title */
+#error-page-title {
+    font-size: 24px;
+    color: #075E54;
+    margin-bottom: 20px;
+}
+
+/* Error Message */
+#error-text-message {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* Home Button */
+#error-home-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#error-home-button:hover {
+    background-color: #339eff;
+}
+
+#error-home-button:focus {
+    outline: none;
+}
