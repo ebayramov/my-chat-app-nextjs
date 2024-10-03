@@ -40,4 +40,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the application using nodemon
-CMD ["nodemon", "--watch", ".", "--exec", "npm", "run", "dev"]
+CMD ["--watch", ".", "--exec", "npm", "run", "dev"]
