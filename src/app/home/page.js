@@ -15,7 +15,7 @@ export default function HomePage() {
     const [showNotifications, setShowNotifications] = useState(false); // State to toggle notification dropdown
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && !logged) {
+        if (!logged) {
             router.push('/login');
         } else {
             setLoading(false);
@@ -38,9 +38,7 @@ export default function HomePage() {
 
     const handleLogout = () => {
         setLogged(false);
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('logged');
-        }
+        localStorage.removeItem('logged');
         router.push('/login');
     };
 
@@ -92,7 +90,7 @@ export default function HomePage() {
     };
 
     if (loading) {
-        return null;  // Avoid rendering until loading is complete
+        return null;
     }
 
     return (

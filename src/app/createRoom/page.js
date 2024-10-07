@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import io from 'socket.io-client';
 import { AuthContext } from '../layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './style.css';
+
+const socket = io('http://localhost:4000');
 
 export default function CreateRoomPage() {
   const [roomName, setRoomName] = useState('');
@@ -15,34 +17,16 @@ export default function CreateRoomPage() {
   const { username, setRoomAccess } = useContext(AuthContext);
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
-  const [socket, setSocket] = useState(null);  // Initialize socket state
-
-  // Initialize socket.io client only on the client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const socketConnection = io('http://localhost:4000');
-      setSocket(socketConnection);
-
-      return () => {
-        // Cleanup on component unmount
-        if (socketConnection) {
-          socketConnection.disconnect();
-        }
-      };
-    }
-  }, []);  // Empty dependency array ensures this runs only on mount
 
   const createRoom = () => {
     const roomData = { roomName, isPrivate, password, pin, createdBy: username };
-    if (socket) {
-      socket.emit('createRoom', roomData);
-      socket.on('roomCreated', (newRoom) => {
-        if (isPrivate) {
-          setRoomAccess((prevAccess) => ({ ...prevAccess, [newRoom.id]: true }))
-        }
-        router.push(`/room/${newRoom.id}`);
-      });
-    }
+    socket.emit('createRoom', roomData);
+    socket.on('roomCreated', (newRoom) => {
+      if (isPrivate) {
+        setRoomAccess((prevAccess) => ({ ...prevAccess, [newRoom.id]: true }))
+      }
+      router.push(`/room/${newRoom.id}`);
+    });
   };
 
   const handleCreateRoomClick = () => {
